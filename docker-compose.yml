@@ -1,0 +1,53 @@
+version: "3.2"
+
+services:
+  gladys-4:
+    image: gladysassistant/gladys:4.0.0-beta-amd64
+    hostname: gladys-v4
+    ports: 
+      - 80:80
+    environment: 
+      - NODE_ENV=development
+      - TZ=Europe/Paris
+      - SQLITE_FILE_PATH=/var/lib/gladysassistant/gladys-development.db
+    volumes: 
+      - /dev:/dev
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./gladys-4/db:/var/lib/gladysassistant
+      - type: volume
+        source: sources
+        target: /src/server
+    network_mode: host
+
+  gladys-3:
+    image: gladysassistant/gladys
+    ports: 
+      - 8080:8080
+      - 1337:1337
+    depends_on: 
+      - mariadb
+    environment: 
+      - NODE_ENV=development
+      - MYSQL_HOST=mariadb
+      - MYSQL_PASSWORD=mysecretpassword
+      - MYSQL_PORT=3306
+      - TZ=Europe/Paris
+    volumes:
+      - ./gladys-3/hooks:/src/api/hooks
+
+  mariadb:
+    image: mariadb
+    ports:
+      - 3306:3306
+    environment: 
+      - MYSQL_DATABASE=gladys
+      - MYSQL_ROOT_PASSWORD=mysecretpassword
+    volumes:
+      - ./gladys-3/db:/var/lib/mysql
+
+volumes:
+  sources:
+    driver_opts:
+      type: nfs
+      o: bind
+      device: ${PWD}/gladys-4/sources
