@@ -17,7 +17,6 @@ services:
       - type: volume
         source: sources
         target: /src/server
-    network_mode: host
 
   gladys-3:
     image: gladysassistant/gladys
